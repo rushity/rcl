@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
-from prettytable import PrettyTable
-import cl  # Import your logic from cl.py
+from cl import calculate_leaves  # Import the function from cl.py
 
 app = Flask(__name__)
 
@@ -15,47 +14,14 @@ def calculate():
     leaves_per_month = int(request.form['leaves_per_month'])
     months = int(request.form['months'])
 
-    # Initialize data as done in cl.py
-    aa = total_leaves
-    l = leaves_per_month
-    n = months
-    a = [[0 for _ in range(5)] for _ in range(n)]
+    # Collect monthly leaves from the form inputs
+    monthly_leaves = [int(request.form[f'leaves_month_{i+1}']) for i in range(months)]
 
-    # Logic from cl.py to populate 'a' array
-    for i in range(n):
-        a[i][1] = int(request.form[f'leaves_month_{i+1}'])
-        a[i][0] = i + 1
-
-    for i in range(n):
-        a[i][4] = aa
-
-        if a[i][1] >= l:
-            if a[i][4] <= (l - 1):
-                a[i][2] = a[i][4]
-                a[i][3] = a[i][1] - a[i][2]
-                a[i][4] = aa - a[i][2]
-                aa = a[i][4]
-            else:
-                a[i][2] = l
-                a[i][3] = a[i][1] - a[i][2]
-                a[i][4] = aa - a[i][2]
-                aa = a[i][4]
-        else:
-            if a[i][4] < (l - 1):
-                a[i][2] = a[i][4]
-                a[i][3] = a[i][1] - a[i][2]
-                a[i][4] = aa - a[i][2]
-                aa = a[i][4]
-            else:
-                a[i][2] = a[i][1]
-                a[i][3] = a[i][1] - a[i][2]
-                a[i][4] = aa - a[i][2]
-                aa = a[i][4]
+    # Call the function from cl.py to calculate the leave data
+    leave_data = calculate_leaves(total_leaves, leaves_per_month, months, monthly_leaves)
 
     # Prepare data for HTML table
-    table_data = []
-    for i in range(n):
-        table_data.append([i + 1, a[i][1], a[i][2], a[i][3], a[i][4]])
+    table_data = [[i + 1, row[1], row[2], row[3], row[4]] for i, row in enumerate(leave_data)]
 
     return render_template('result.html', table_data=table_data)
 
